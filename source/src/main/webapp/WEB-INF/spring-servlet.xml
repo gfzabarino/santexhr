@@ -29,6 +29,8 @@
 				/admin/forgotPassword/*=forgotPasswordController
 				/admin/createAccount/*=createAccountController
 				/admin/help/*=helpController
+                /admin/jobOpenings/*=jobOpeningController
+                /admin/jobPositions/*=jobPositionController
 				/admin/screening/*=screeningController
 				/admin/settings/*=settingsController
 				/admin/results/*=resultsController
@@ -136,6 +138,14 @@
 	
 	<bean id="helpController"
 		class="org.openapplicant.web.controller.HelpController"/>
+
+    <bean id="jobOpeningController"
+          class="org.openapplicant.web.controller.JobOpeningController"
+          parent="adminController"/>
+
+    <bean id="jobPositionController"
+          class="org.openapplicant.web.controller.JobPositionController"
+          parent="adminController"/>
 	
 	<bean id="loginController"
 		class="org.springframework.web.servlet.mvc.ParameterizableViewController">
@@ -198,7 +208,7 @@
     </bean>
 	
 	<bean id="urlBasedViewResolver"
-		class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+		class="org.springframework.js.ajax.AjaxUrlBasedViewResolver">
 		<property name="viewClass" value="org.springframework.web.servlet.view.tiles2.TilesView"/>
 	</bean>
 	

@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Required;
 /**
  * Provides common methods to admin portal controllers
  */
-public abstract class AdminController {
+public abstract class AdminController{
 	
 	private AdminService adminService;
 	

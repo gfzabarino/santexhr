@@ -128,7 +128,7 @@ public class Candidate extends DomainObject {
 	public CoverLetter getCoverLetter() {
 		return coverletter;
 	}
-
+	
 	public void setCoverLetter(CoverLetter coverletter) {
 		this.coverletter = coverletter;
 	}
