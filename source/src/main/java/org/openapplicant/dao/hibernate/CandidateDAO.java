@@ -192,6 +192,7 @@ public class CandidateDAO extends DomainObjectDAO<Candidate> implements ICandida
 		
 		criteria.createAlias("company", "c").add(eq("c.id", companyId));
 		criteria.createAlias("entityInfo","e").add(between("e.createdDate",startDate,endDate));
+
 		return getHibernateTemplate().findByCriteria(criteria);
 	}
 
