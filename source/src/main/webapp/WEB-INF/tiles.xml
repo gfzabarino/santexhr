@@ -91,6 +91,9 @@
 	<definition name="sidebar/settings/users" extends="sidebar/settings">
 		<put-attribute name="users" value=""/>
 	</definition>
+		<definition name="sidebar/reports" template="/WEB-INF/views/reports/reportsSidebar.jsp">
+		<put-attribute name="candidates" value=""/>		
+	</definition>
 	
 	<!-- ADMIN QUESTION TYPES -->
 	<definition name="admin/content/question" template="/WEB-INF/views/category/question.jsp">
@@ -438,6 +441,18 @@
 		<put-attribute name="title" value="Santex HR | Users"/>
 		<put-attribute name="sidebar" value="sidebar/settings/users"/>
 		<put-attribute name="content" value="/WEB-INF/views/users/index.jsp"/>
+	</definition>
+	
+	<!-- REPORTS -->
+	<definition name="reports/index" extends="application">
+		<put-attribute name="title" value="Santex HR | Settings"/>
+		<put-attribute name="sidebar" value="sidebar/reports"/>
+		<put-attribute name="content" value="/WEB-INF/views/reports/index.jsp"/>
+	</definition>
+	<definition name="reports/view" extends="application">
+		<put-attribute name="title" value="Santex HR | Settings"/>
+		<put-attribute name="sidebar" value="sidebar/reports"/>
+		<put-attribute name="content" value="/WEB-INF/views/reports/view.jsp"/>
 	</definition>
 	
 </tiles-definitions>	

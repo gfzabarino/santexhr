@@ -38,6 +38,7 @@
 				/admin/users/*=usersController
        			/admin/report.pdf=reportController
        			/admin/file*=attachmentController
+       			/admin/reports/*=reportController
 				
 				/dwr/call/**=dwrController
 				/dwr/interface/**=dwrController
