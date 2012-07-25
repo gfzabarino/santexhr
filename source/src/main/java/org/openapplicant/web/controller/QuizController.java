@@ -3,10 +3,12 @@ package org.openapplicant.web.controller;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.openapplicant.domain.Candidate;
+import org.openapplicant.domain.QuestionAndResponse;
 import org.openapplicant.domain.Sitting;
 import org.openapplicant.domain.link.CandidateExamLink;
 import org.openapplicant.domain.link.ExamLink;
@@ -109,6 +111,24 @@ public class QuizController {
 			model.put("completionText", sitting.getCandidate().getCompany().getCompletionText());
 			return "quiz/thanks";
 		}
+	}
+	
+	@RequestMapping(method=GET)
+	public String goToQuestion(	@RequestParam(value="s") String guid,@RequestParam(value="qId") Long qId,
+			Map<String,Object> model ) {
+			Sitting sitting = quizService.findSittingByGuid(guid);
+			model.put("sitting", sitting);
+			if(sitting.hasNextQuestion()) {
+				Question question = quizService.goToQuestion(sitting, qId);
+				model.put("question", question);
+				model.put("questionViewHelper", new MultipleChoiceHelper(question));
+				
+				return new QuizQuestionViewVisitor(question).getView();					
+			} else {
+				model.put("completionText", sitting.getCandidate().getCompany().getCompletionText());
+				return "quiz/thanks";				
+			}
+
 	}
 	
 	private void putCandidate(Map<String,Object> model, ExamLink examLink) {

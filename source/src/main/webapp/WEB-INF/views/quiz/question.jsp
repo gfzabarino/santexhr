@@ -19,7 +19,11 @@
 	<input type="hidden" id="sittingId" value="${sitting.id}"/>
 	<input type="hidden" id="questionId" value="${question.id}"/>
 	<div class="row">
-	   <span id="name"><c:out value="${sitting.exam.name}"/>, <c:out value="${sitting.nextQuestionIndex}"/> of <c:out value="${fn:length(sitting.exam.questions)}"/></span>
+	   <span id="name"><c:out value="${sitting.exam.name}"/>
+	   <c:forEach items="${sitting.exam.questions}" var="questionIndex" >
+			<a id="goToQuestion" name="${questionIndex.id}"> <c:out value="${questionIndex.id}"/> </a>  
+	   </c:forEach>
+	   <c:out value="${sitting.nextQuestionIndex}"/> of <c:out value="${fn:length(sitting.exam.questions)}"/></span>
 	   <span id="time_allowed"><c:out value="${question.timeAllowed}"/> s</span>
 	</div>
 	<tiles:insertAttribute name="questionKind"/>
@@ -27,7 +31,7 @@
 </form>
 <script type="text/javascript">
 	$('a#next').fadeIn('slow');
-	
+	 
 	oltk.include('openapplicant/quiz/helper/timer.js');
 	openapplicant.quiz.helper.timer.init('#time_allowed', ${null==question.timeAllowed ? 0 : question.timeAllowed},
 		submitResponse,
@@ -52,9 +56,27 @@
 		else { window.location = "<c:url value='/quiz/question?s=${sitting.guid}'/>"; }
 	}
 	
+	function goToQuestion(qId) {
+		if(!submittedResponse) { setTimeout("goToQuestion()", 10); }
+		else { 
+			if (qId != null) {
+				window.location = "<c:url value='/quiz/goToQuestion?s=${sitting.guid}&qId=" + qId + "'/>"; 
+			}
+			
+		}
+	}
+	
 	$('#next').click( function() {
 		openapplicant.quiz.helper.timer.destroy();		
 		submitResponse();
 		nextQuestion();
+	});
+	
+	$('#goToQuestion').click( function(evt) {
+		alert(evt);
+		alert(evt.target);
+		openapplicant.quiz.helper.timer.destroy();		
+		submitResponse();
+		goToQuestion(evt.target.name);		
 	});
 </script>
