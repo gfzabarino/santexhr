@@ -35,38 +35,39 @@
 	oltk.include('jquery/time/jquery.timers-1.2.js');
 	oltk.include('jquery/jquery.js');
 	$(document).ready(function(){
-		var totalTime = $("#remainingTime").val();	
-		 //Display Total Exam time - CountDown.	
-		 $(document).everyTime('1s',function(i) {
-			 if(totalTime > 0){
-			 	totalTime = totalTime - 1;			  
-			 	$("#examTime").html("Exam Time: " + totalTime + " s");
-			 }
-			 else
-			 {
-				 $("#examTime").html("Exam Time: " + totalTime + " s");
-				 $(document).stopTime('displayRemainingTime');
-			 }
-		 });	 
-		 //Server ping and Check Server Remaining Time.
-		 $(document).everyTime('10s',function(i) {
-			$.ajax({
-				type: "POST",
-				url: '<c:url value="progress"/>',
-				data: {remainingTime:totalTime},
-				success: function (data){
-					if(totalTime == 0){
-						submitResponse();
-						$(document).stopTime('keepalive');					
-					}
-				},
-				error: function (request, status, error){					
-					submitResponse();
-					$(document).stopTime('keepalive');
-				}  
-			});
-		}, 0);
-		 
+		    var totalTime = $("#remainingTime").val();		  
+			if(totalTime != ""){
+				 //Display Total Exam time - CountDown.	
+				 $(document).everyTime('1s',function(i) {
+					 if(totalTime > 0){
+					 	totalTime = totalTime - 1;			  
+					 	$("#examTime").html("Exam Time: " + totalTime + " s");
+					 }
+					 else
+					 {
+						 $("#examTime").html("Exam Time: " + totalTime + " s");
+						 $(document).stopTime('displayRemainingTime');
+					 }
+				 });	 
+				 //Server ping and Check Server Remaining Time.
+				 $(document).everyTime('10s',function(i) {
+					$.ajax({
+						type: "POST",
+						url: '<c:url value="progress"/>',
+						data: {remainingTime:totalTime},
+						success: function (data){
+							if(totalTime == 0){
+								submitResponse();
+								$(document).stopTime('keepalive');					
+							}
+						},
+						error: function (request, status, error){					
+							submitResponse();
+							$(document).stopTime('keepalive');
+						}  
+					});
+				}, 0);
+			}			 
 	});
 	//End - check progress functionality
 	
