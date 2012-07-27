@@ -16,18 +16,61 @@
 </style>
 
 <form id="openapplicant_question_form" class="openapplicant_quiz_question">
+	
 	<input type="hidden" id="sittingId" value="${sitting.id}"/>
 	<input type="hidden" id="questionId" value="${question.id}"/>
-	<div class="row">
+	<input type="hidden" id="remainingTime" value="${remainingTime}"/>
+	<div class="row">	   
 	   <span id="name"><c:out value="${sitting.exam.name}"/>, <c:out value="${sitting.nextQuestionIndex}"/> of <c:out value="${fn:length(sitting.exam.questions)}"/></span>
 	   <span id="time_allowed"><c:out value="${question.timeAllowed}"/> s</span>
-	</div>
+	</div>	
 	<tiles:insertAttribute name="questionKind"/>
+		
 	<a id="next" style="display:none;">continue</a>
+	<tiles:insertAttribute name="progressTime"/>
+	<div id="errorMessage"></div>
 </form>
-<script type="text/javascript">
-	$('a#next').fadeIn('slow');
+<script type="text/javascript">	
+	//Begin - check progress functionality
+	oltk.include('jquery/time/jquery.timers-1.2.js');
+	oltk.include('jquery/jquery.js');
+	$(document).ready(function(){
+		var totalTime = $("#remainingTime").val();	
+		 //Display Total Exam time - CountDown.	
+		 $(document).everyTime('1s',function(i) {
+			 if(totalTime > 0){
+			 	totalTime = totalTime - 1;			  
+			 	$("#examTime").html("Exam Time: " + totalTime + " s");
+			 }
+			 else
+			 {
+				 $("#examTime").html("Exam Time: " + totalTime + " s");
+				 $(document).stopTime('displayRemainingTime');
+			 }
+		 });	 
+		 //Server ping and Check Server Remaining Time.
+		 $(document).everyTime('10s',function(i) {
+			$.ajax({
+				type: "POST",
+				url: '<c:url value="progress"/>',
+				data: {remainingTime:totalTime},
+				success: function (data){
+					if(totalTime == 0){
+						submitResponse();
+						$(document).stopTime('keepalive');					
+					}
+				},
+				error: function (request, status, error){					
+					submitResponse();
+					$(document).stopTime('keepalive');
+				}  
+			});
+		}, 0);
+		 
+	});
+	//End - check progress functionality
 	
+	$('a#next').fadeIn('slow');	
 	oltk.include('openapplicant/quiz/helper/timer.js');
 	openapplicant.quiz.helper.timer.init('#time_allowed', ${null==question.timeAllowed ? 0 : question.timeAllowed},
 		submitResponse,
