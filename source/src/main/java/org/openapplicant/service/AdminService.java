@@ -1278,6 +1278,38 @@ public class AdminService extends ApplicationService {
     }
 
     /**
+     * Returns job openings from the given company with the given status
+     * @param company
+     * @return
+     */
+    public List<JobOpening> findJobOpeningsByCompanyAndArchivedStatusWithSelectedCandidates(Company company) {
+        List<JobOpening> candidatesSelectedJobOpenings = new ArrayList<JobOpening>();
+        List<JobOpening> archivedJobOpenings = getJobOpeningDao().findArchivedByCompany(company);
+        for (JobOpening jobOpening : archivedJobOpenings) {
+            if (jobOpening.hasSelectedApplicant()) {
+                candidatesSelectedJobOpenings.add(jobOpening);
+            }
+        }
+        return candidatesSelectedJobOpenings;
+    }
+
+    /**
+     * Returns job openings from the given company with the given status
+     * @param company
+     * @return
+     */
+    public List<JobOpening> findJobOpeningsByCompanyAndArchivedStatusWithNoSelectedCandidates(Company company) {
+        List<JobOpening> noCandidatesSelectedJobOpenings = new ArrayList<JobOpening>();
+        List<JobOpening> archivedJobOpenings = getJobOpeningDao().findArchivedByCompany(company);
+        for (JobOpening jobOpening : archivedJobOpenings) {
+            if (!jobOpening.hasSelectedApplicant()) {
+                noCandidatesSelectedJobOpenings.add(jobOpening);
+            }
+        }
+        return noCandidatesSelectedJobOpenings;
+    }
+
+    /**
      * Returns the job opening with the given id
      * @param jobOpeningId
      * @return
@@ -1293,16 +1325,18 @@ public class AdminService extends ApplicationService {
      * @param finishDate
      * @param client
      * @param description
-     * @param applicants
+     * @param applicantNotes
      */
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void updateJobOpeningInfo(Long id, JobPosition jobPosition, Date finishDate, String client, String description, Set<Candidate> applicants) {
+    public void updateJobOpeningInfo(Long id, JobPosition jobPosition, Date finishDate, String client, String description, List<ApplicantNote> applicantNotes) {
         JobOpening jobOpening = getJobOpeningDao().find(id);
         jobOpening.setJobPosition(jobPosition);
         jobOpening.setFinishDate(finishDate);
         jobOpening.setClient(client);
         jobOpening.setDescription(description);
-        jobOpening.setApplicants(applicants);
+        final List<ApplicantNote> oldApplicantNotes = jobOpening.getApplicantNotes();
+        oldApplicantNotes.clear();
+        oldApplicantNotes.addAll(applicantNotes);
         getJobOpeningDao().save(jobOpening);
     }
 

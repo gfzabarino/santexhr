@@ -34,6 +34,7 @@
 		<mapping class="org.openapplicant.domain.ExamDefinition" />
         <mapping class="org.openapplicant.domain.JobPosition" />
         <mapping class="org.openapplicant.domain.JobOpening" />
+        <mapping class="org.openapplicant.domain.ApplicantNote" />
 
 		<mapping class="org.openapplicant.domain.AccountCreationToken"/>
 		<mapping class="org.openapplicant.domain.PasswordRecoveryToken"/>

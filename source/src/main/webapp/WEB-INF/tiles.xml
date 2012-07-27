@@ -113,7 +113,7 @@
 	<!-- ADMIN QUESTION TYPES -->
 	<definition name="admin/content/question" template="/WEB-INF/views/category/question.jsp">
 		<put-attribute name="action" value=""/>
-		<put-attribute name="questionKind" value=""/>
+		<put-attribute name="questionKind" value=""/>		
 	</definition>
 
 	<definition name="admin/content/question/essay" extends="admin/content/question">
@@ -132,6 +132,7 @@
 	<!-- QUIZ QUESTION TYPES -->
 	<definition name="quiz/content/question" template="/WEB-INF/views/quiz/question.jsp">
 		<put-attribute name="questionKind" value=""/>
+		<put-attribute name="progressTime" value=""/>
 	</definition>
 
 	<definition name="quiz/content/question/essay" extends="quiz/content/question">
@@ -142,8 +143,12 @@
 	</definition>
 	<definition name="quiz/content/question/multipleChoice" extends="quiz/content/question">
 		<put-attribute name="questionKind" value="/WEB-INF/views/quiz/multipleChoiceQuestion.jsp"/>
+		<put-attribute name="progressTime" value="progress"/>
 	</definition>
-
+	<definition name="progress" template="/WEB-INF/views/quiz/progress.jsp">
+		<put-attribute name="time"/>
+	</definition>
+	
 	<!--
 	==========================================================================
 						CONTROLLER TEMPLATES
@@ -421,7 +426,7 @@
 	
 	<definition name="quiz/multipleChoiceQuestion" extends="quizApplication">
 		<put-attribute name="title" value="Santex HR | Quiz Multiple Choice Question"/>
-		<put-attribute name="content" value="quiz/content/question/multipleChoice"/>
+		<put-attribute name="content" value="quiz/content/question/multipleChoice"/>	
 	</definition>
 	
 	<definition name="quiz/thanks" extends="quizApplication">
@@ -432,6 +437,7 @@
 		<put-attribute name="title" value="Santex HR | Quiz Sorry"/>
 		<put-attribute name="content" value="/WEB-INF/views/quiz/sorry.jsp"/>
 	</definition>
+	
 		
 	<!-- SETTINGS -->
 	<definition name="settings/index" extends="application">

@@ -50,7 +50,7 @@ public class JobOpeningDAO extends DomainObjectDAO<JobOpening> implements IJobOp
             public Object doInHibernate(Session session) throws HibernateException, SQLException {
                 return session.createCriteria(JobOpening.class)
                         .add(Restrictions.eq("company", company))
-                        .add(Restrictions.in("status", JobOpening.Status.getArchivedStatus()))
+                        .add(Restrictions.eq("status", JobOpening.Status.ARCHIVED))
                         .list();
             }
         });

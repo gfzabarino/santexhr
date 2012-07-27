@@ -114,7 +114,6 @@ public class Sitting extends DomainObject {
 		Assert.notNull(response);
 		
 		QuestionAndResponse qar = findQuestionAndResponseByQuestionId(questionId);
-		Assert.state(qar.getResponse() == null, "Prior response should not be replaced");
 		responseSummary.addResponse(response);
 		qar.setResponse(response); 
 	}
@@ -124,6 +123,10 @@ public class Sitting extends DomainObject {
 	 */
 	public boolean hasNextQuestion() {
 		return nextQuestionIndex < questionsAndResponses.size();
+	}
+	
+	public boolean hasPreviousQuestion() {
+		return nextQuestionIndex - 2 >= 0;
 	}
 	
 	/**
@@ -146,6 +149,16 @@ public class Sitting extends DomainObject {
 	}
 	
 	/**
+	 * @return the previous question
+	 */
+	public Question backToPreviousQuestion() {
+		Assert.state((nextQuestionIndex - 2) >= 0, "All questions have been viewed.");
+		Question result =  questionsAndResponses.get(nextQuestionIndex - 2).getQuestion();
+		nextQuestionIndex--;
+		return result;
+	}	
+	
+	/**
 	 * Go to next question.
 	 *
 	 * @param questionId the question id
@@ -156,7 +169,7 @@ public class Sitting extends DomainObject {
 		for (QuestionAndResponse questionAndResponse: questionsAndResponses) {
 			Question question = questionAndResponse.getQuestion();
 			if (question.getId().equals(questionId)) {
-				nextQuestionIndex = questionsAndResponses.indexOf(question) + 1;
+				nextQuestionIndex = questionsAndResponses.indexOf(questionAndResponse) + 1;
 				return question;
 			}
 		}

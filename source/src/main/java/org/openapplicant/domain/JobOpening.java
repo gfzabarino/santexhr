@@ -1,10 +1,12 @@
 package org.openapplicant.domain;
 
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
+
 import javax.persistence.*;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 /**
  * User: Gian Franco Zabarino
@@ -18,10 +20,11 @@ public class JobOpening extends DomainObject {
     private JobPosition jobPosition;
     private String client;
     private Date startDate = new Date();
-    private Date finishDate = new Date(System.currentTimeMillis() + MILLIS_IN_A_DAY * 14);
+    private Date finishDate = new Date(System.currentTimeMillis() + MILLIS_IN_A_DAY * 28);
     private Status status = Status.NEW;
     private String description;
-    private Set<Candidate> applicants;
+    private List<ApplicantNote> applicantNotes;
+    private Candidate selectedApplicant;
 
     @Transient
     public Boolean isOpen() {
@@ -92,13 +95,42 @@ public class JobOpening extends DomainObject {
         this.client = client;
     }
 
-    @ManyToMany
-    public Set<Candidate> getApplicants() {
-        return applicants;
+    @ManyToOne
+    public Candidate getSelectedApplicant() {
+        return selectedApplicant;
     }
 
-    public void setApplicants(Set<Candidate> applicants) {
-        this.applicants = applicants;
+    public void setSelectedApplicant(Candidate selectedApplicant) {
+        this.selectedApplicant = selectedApplicant;
+    }
+
+    @OneToMany
+    @Cascade({CascadeType.ALL, CascadeType.DELETE_ORPHAN})
+    @JoinColumn(name = "jobOpening")
+    public List<ApplicantNote> getApplicantNotes() {
+        return applicantNotes;
+    }
+
+    public void setApplicantNotes(List<ApplicantNote> applicantNotes) {
+        this.applicantNotes = applicantNotes;
+    }
+
+    @Transient
+    public String getArchivedStatusLabel() {
+        if (getStatus().equals(Status.ARCHIVED)) {
+            if (hasSelectedApplicant()) {
+                return Status.CANDIDATE_SELECTED_TRANSIENT_STATE;
+            } else {
+                return Status.NO_CANDIDATE_SELECTED_TRANSIENT_STATE;
+            }
+        } else {
+            return Status.NOT_ARCHIVED_TRANSIENT_STATE;
+        }
+    }
+
+    @Transient
+    public Boolean hasSelectedApplicant() {
+        return getSelectedApplicant() != null;
     }
 
     //========================================================================
@@ -108,15 +140,18 @@ public class JobOpening extends DomainObject {
         NEW,
         IN_PROGRESS,
         HIRING_PROCESS,
-        CANDIDATE_SELECTED,
-        NO_CANDIDATE_SELECTED;
+        ARCHIVED;
+
+        public final static String CANDIDATE_SELECTED_TRANSIENT_STATE = "CANDIDATE_SELECTED";
+        public final static String NO_CANDIDATE_SELECTED_TRANSIENT_STATE = "NO_CANDIDATE_SELECTED";
+        public final static String NOT_ARCHIVED_TRANSIENT_STATE = "NOT_ARCHIVED";
 
         public static List<Status> getActiveStatus() {
             return Arrays.asList(NEW, IN_PROGRESS, HIRING_PROCESS);
         }
 
-        public static List<Status> getArchivedStatus() {
-            return Arrays.asList(CANDIDATE_SELECTED, NO_CANDIDATE_SELECTED);
+        public static List<String> getArchivedStatus() {
+            return Arrays.asList(CANDIDATE_SELECTED_TRANSIENT_STATE, NO_CANDIDATE_SELECTED_TRANSIENT_STATE);
         }
     }
 }

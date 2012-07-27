@@ -15,6 +15,25 @@
         overflow-y: auto !important;
         height: auto !important;
     }
+    .note {
+        width: 285px;
+        margin: 5px;
+        height: 140px;
+        resize: none;
+    }
+    .candidateSelectionCell {
+        height: auto;
+        padding: inherit;
+    }
+    #candidatesSelectionTableDiv {
+        height: 145px;
+        overflow: auto;
+    }
+    #addCandidates {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+    }
 </style>
 <style type="text/css">
     @import "<c:url value='/css/layout/candidate_list.css'/>";
@@ -83,6 +102,12 @@
         <div id="candidatesList"></div>
         <input type="button" value="Add selected" id="addCandidates"/>
     </div>
+    <c:forEach items="${candidateNotes}" var="candidateNote">
+    <div id="noteDiv_${candidateNote.candidate.id}">
+        <label for="noteText_${candidateNote.candidate.id}">Note:</label><br/>
+        <textarea id="noteText_${candidateNote.candidate.id}" class="note">${candidateNote.note.body}</textarea>
+    </div>
+    </c:forEach>
 </div>
 
 <script type="text/javascript">
@@ -172,7 +197,25 @@
             });
         };
 
+        $.notesDivs = [];
+
+        $('div[id^=noteDiv_]').each(function() {
+            var id = $(this).attr('id').substr(8);
+            $.notesDivs[id] = $(this);
+            $(this).dialog({autoOpen:false, modal: true});
+        });
+
         $.updateTable = function() {
+            $('a[id^=note_]').click(function() {
+                var id = $(this).attr('id').substr(5);
+                var noteDiv = $.notesDivs[id]
+                if (noteDiv == null) {
+                    $.notesDivs[id] = $('<div id=\'noteDiv_\'' + id + '></div>')
+                            .html('<label for="noteText_"' + id + '>Note:</label><br/><textarea id="noteText_' + id + '" class="note"/>');
+                    $.notesDivs[id].dialog({autoOpen:false, modal: true});
+                }
+                $.notesDivs[id].dialog('open');
+            });
             $('#appTable').find('tr').each(function (i) {
                 if (i > 0) {
                     if ((i - 1) >= ($.pageNumber * $.recordsPerPage) && (i - 1) < (($.pageNumber + 1) * $.recordsPerPage) )
@@ -218,15 +261,24 @@
         $.updateTable();
         $.clueTips();
 
-        $('#modalContainer').dialog({autoOpen:false});
+        $('#modalContainer').dialog({autoOpen:false, modal: true, width: 500});
 
         $('#submit').click(function() {
             var data = $('#formId').serializeArray();
             var ats = new Array();
             $(':hidden[id^="_applicants"]').each(function() {
                 data.push({
-                    name:'applicants',
+                    name:'a',
                     value:$(this)[0].value
+                });
+                var note = '';
+                var noteTextareaSelector = $('#noteText_' + $(this)[0].value);
+                if (noteTextareaSelector.length > 0) {
+                    note = noteTextareaSelector[0].value;
+                }
+                data.push({
+                    name:'n',
+                    value:note
                 });
             });
             data.push({

@@ -140,6 +140,18 @@ public class QuizService extends ApplicationService {
 	}
 	
 	/**
+	 * Retrieves the previous question and updates the sitting index.
+	 * 
+	 * @param sittingId
+	 * @return
+	 */
+	public Question previousQuestion(Sitting sitting) {
+        	Question result = sitting.advanceToNextQuestion();
+    		evaluateCandidateStatus(sitting);
+        	return result;
+	}
+	
+	/**
 	 * Go to question.
 	 *
 	 * @param sitting the sitting

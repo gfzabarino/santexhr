@@ -32,8 +32,8 @@
         </div>
         <ul class="toggle_target">
             <c:forEach var="status" items="${archivedStatuses}">
-                <li class="folder ${view_status == status ? 'selected' : '' }">
-                    <a href="<c:url value="viewstatus?status=${status}"/>">
+                <li class="folder ${view_archivedStatus eq status ? 'selected' : '' }">
+                    <a href="<c:url value="viewstatus?archivedStatus=${status}"/>">
                         <c:out value="${tt:humanize(status)}"/>
                     </a>
                 </li>
