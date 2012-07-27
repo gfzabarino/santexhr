@@ -41,6 +41,7 @@ public class QuizController {
 	
 	private long totalExamTime = 0;	
 	private ExamTimeMonitor examMonitor;
+	private boolean isExamTimed = true;
 	
 	private final static String QUIZ_THANKS_VIEW = "quiz/thanks";
 	
@@ -119,9 +120,11 @@ public class QuizController {
 			Question question = quizService.nextQuestion(sitting);
 			
 			//Counter time on the server side.
-			if(totalExamTime == 0){
+			if(totalExamTime == 0 && isExamTimed){
 				this.calculateTotalExamTime(sitting.getExam());
-				examMonitor = new ExamTimeMonitor(totalExamTime);
+				if(isExamTimed){
+					examMonitor = new ExamTimeMonitor(totalExamTime);					
+				}
 			}
 			
 			//Verify the remaining time
@@ -130,8 +133,10 @@ public class QuizController {
 			}else{			
 				model.put("question", question);
 				model.put("questionViewHelper", new MultipleChoiceHelper(question));
-				model.put("isExamInTime", "true");
-				model.put("remainingTime", examMonitor.getSeconds());
+				if(isExamTimed){
+					model.put("isExamInTime", "true");
+					model.put("remainingTime", examMonitor.getSeconds());
+				}
 				redirect =  new QuizQuestionViewVisitor(question).getView();
 			}
 		} else {			
@@ -141,6 +146,7 @@ public class QuizController {
 		if(QUIZ_THANKS_VIEW.equals(redirect)){
 			model.put("completionText", sitting.getCandidate().getCompany().getCompletionText());
 			totalExamTime = 0;
+			isExamTimed = true;
 		}
 		
 		return redirect;
@@ -215,26 +221,31 @@ public class QuizController {
 	
 	private void calculateTotalExamTime(Exam exam){		
 		List<Question> questionList= exam.getQuestions();
+
 		for (Question question : questionList) {
-			this.totalExamTime = this.totalExamTime + question.getTimeAllowed();
+			if(question.getTimeAllowed() != null){
+				this.totalExamTime = this.totalExamTime + question.getTimeAllowed();
+			}
 		}
+		isExamTimed = this.totalExamTime > 0; 
 	}
 	
 	@RequestMapping(method = RequestMethod.POST)
 	public Map<String,Object>  progress(@RequestParam("remainingTime") long clientRemainingTime) throws TimeoutException{
 		Map<String,Object> dataProgress = new HashMap<String,Object>();
-		
-		long serverRemainingTime = examMonitor.getSeconds();
-		long serverRemainingTimeMin = serverRemainingTime;
-		long serverRemainingTimeMax = serverRemainingTime + 2;
-		
-		if(serverRemainingTime > 2)
-			serverRemainingTimeMin = serverRemainingTime - 2;		
-		
-		if( clientRemainingTime > serverRemainingTimeMin && clientRemainingTime <= serverRemainingTimeMax){
-			dataProgress.put("remainingTime", serverRemainingTime);
-		}else{
-			throw new TimeoutException("The exam time has expired.");			
+		if(isExamTimed){
+			long serverRemainingTime = examMonitor.getSeconds();
+			long serverRemainingTimeMin = serverRemainingTime;
+			long serverRemainingTimeMax = serverRemainingTime + 2;
+			
+			if(serverRemainingTime > 2)
+				serverRemainingTimeMin = serverRemainingTime - 2;		
+			
+			if( clientRemainingTime > serverRemainingTimeMin && clientRemainingTime <= serverRemainingTimeMax){
+				dataProgress.put("remainingTime", serverRemainingTime);
+			}else{
+				throw new TimeoutException("The exam time has expired.");			
+			}
 		}
 		return dataProgress;
 	}
