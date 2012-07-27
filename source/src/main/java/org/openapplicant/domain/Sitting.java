@@ -20,6 +20,7 @@ import org.hibernate.validator.NotNull;
 import org.hibernate.validator.Valid;
 import org.openapplicant.domain.question.Question;
 import org.openapplicant.policy.NeverCall;
+import org.openapplicant.web.view.MultipleChoiceHelper;
 import org.springframework.util.Assert;
 
 
@@ -113,7 +114,6 @@ public class Sitting extends DomainObject {
 		Assert.notNull(response);
 		
 		QuestionAndResponse qar = findQuestionAndResponseByQuestionId(questionId);
-		Assert.state(qar.getResponse() == null, "Prior response should not be replaced");
 		responseSummary.addResponse(response);
 		qar.setResponse(response); 
 	}
@@ -123,6 +123,10 @@ public class Sitting extends DomainObject {
 	 */
 	public boolean hasNextQuestion() {
 		return nextQuestionIndex < questionsAndResponses.size();
+	}
+	
+	public boolean hasPreviousQuestion() {
+		return nextQuestionIndex - 2 >= 0;
 	}
 	
 	/**
@@ -142,6 +146,34 @@ public class Sitting extends DomainObject {
 		Question result =  questionsAndResponses.get(nextQuestionIndex).getQuestion();
 		nextQuestionIndex++;
 		return result;
+	}
+	
+	/**
+	 * @return the previous question
+	 */
+	public Question backToPreviousQuestion() {
+		Assert.state((nextQuestionIndex - 2) >= 0, "All questions have been viewed.");
+		Question result =  questionsAndResponses.get(nextQuestionIndex - 2).getQuestion();
+		nextQuestionIndex--;
+		return result;
+	}	
+	
+	/**
+	 * Go to next question.
+	 *
+	 * @param questionId the question id
+	 * @return the question
+	 */
+	public Question goToNextQuestion(Long questionId) {
+		
+		for (QuestionAndResponse questionAndResponse: questionsAndResponses) {
+			Question question = questionAndResponse.getQuestion();
+			if (question.getId().equals(questionId)) {
+				nextQuestionIndex = questionsAndResponses.indexOf(questionAndResponse) + 1;
+				return question;
+			}
+		}
+		return null;
 	}
 	
 	// FIXME: we shouldn't be using this method to display the index of the 
