@@ -135,14 +135,51 @@ public class QuizService extends ApplicationService {
 	 */
 	public Question nextQuestion(Sitting sitting) {
         	Question result = sitting.advanceToNextQuestion();
-        	if(!sitting.hasNextQuestion()) {
-        		sitting.getCandidate().setStatus(Candidate.Status.READY_FOR_GRADING);
-        		getCandidateDao().save(sitting.getCandidate());
-        		getCandidateWorkFlowEventDao().save(new SittingCompletedEvent(sitting));
-        	}
-        	getSittingDao().save(sitting);
+    		evaluateCandidateStatus(sitting);
         	return result;
 	}
+	
+	/**
+	 * Retrieves the previous question and updates the sitting index.
+	 * 
+	 * @param sittingId
+	 * @return
+	 */
+	public Question previousQuestion(Sitting sitting) {
+        	Question result = sitting.backToPreviousQuestion();
+    		evaluateCandidateStatus(sitting);
+        	return result;
+	}
+	
+	/**
+	 * Go to question.
+	 *
+	 * @param sitting the sitting
+	 * @param questionId the question id
+	 * @return the question
+	 */
+	public Question goToQuestion(Sitting sitting, Long questionId) {
+		Question result = sitting.goToNextQuestion(questionId);
+		evaluateCandidateStatus(sitting);
+    	return result;		
+	}
+	
+	/**
+	 * Evaluate candidate status.
+	 * If the last question is submitted, the status of the candidates changes 
+	 * to READY_FOR_GRADING
+	 *
+	 * @param sitting the sitting
+	 */
+	public void evaluateCandidateStatus(Sitting sitting) {
+    	if(!sitting.hasNextQuestion()) {
+    		sitting.getCandidate().setStatus(Candidate.Status.READY_FOR_GRADING);
+    		getCandidateDao().save(sitting.getCandidate());
+    		getCandidateWorkFlowEventDao().save(new SittingCompletedEvent(sitting));
+    	}
+    	getSittingDao().save(sitting);		
+	}
+	
 
 	/**
 	 * Retrieves a sitting with the given id

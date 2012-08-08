@@ -28,6 +28,8 @@ public class Exam extends DomainObject {
 	private String artifactId = UUID.randomUUID().toString();
 
     private JobPosition jobPosition;
+    
+    private long totalTime;
 
 	/**
 	 * @return the artifactId of this exam.
@@ -171,4 +173,14 @@ public class Exam extends DomainObject {
     public void setJobPosition(JobPosition jobPosition) {
         this.jobPosition = jobPosition;
     }
+    
+    @Column(nullable=true, columnDefinition="int default 0")
+	public long getTotalTime() {
+		return totalTime;
+	}
+
+	public void setTotalTime(long totalTime) {
+		this.totalTime = totalTime;
+	}
+       
 }

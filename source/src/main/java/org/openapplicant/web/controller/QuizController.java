@@ -3,6 +3,7 @@ package org.openapplicant.web.controller;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.SessionAttributes;
 
 
 @Controller
@@ -68,7 +70,7 @@ public class QuizController {
 		if(examLink.isUsed()) {
 			model.put("error", "This exam link has already been used.");
 			return "quiz/sorry";
-		}		
+		}
 		
 		putCandidate(model, examLink);
 		model.put("examLink", examLink);
@@ -110,7 +112,7 @@ public class QuizController {
 	
 	@RequestMapping(method=GET)
 	public String question(	@RequestParam(value="s") String guid,
-							Map<String,Object> model, HttpServletRequest req ) {
+							Map<String,Object> model, HttpServletRequest req) {
 		logger.info("Question: building question");
 		Sitting sitting = quizService.findSittingByGuid(guid);
 		model.put("sitting", sitting);	
@@ -118,15 +120,8 @@ public class QuizController {
 		
 		if(sitting.hasNextQuestion()) {
 			Question question = quizService.nextQuestion(sitting);
-			
-			//Counter time on the server side.
-			if(totalExamTime == 0 && isExamTimed){
-				this.calculateTotalExamTime(sitting.getExam());
-				if(isExamTimed){
-					examMonitor = new ExamTimeMonitor(totalExamTime);					
-				}
-			}
-			
+			timeProcess(sitting);
+		
 			//Verify the remaining time
 			if(examMonitor != null && examMonitor.getSeconds() == 0){
 				redirect = QUIZ_THANKS_VIEW;
@@ -149,6 +144,58 @@ public class QuizController {
 			isExamTimed = true;
 		}
 		
+		return redirect;
+	}
+	
+	@RequestMapping(method=GET)
+	public String goToQuestion(	@RequestParam(value="s") String guid,@RequestParam(value="qId") Long qId,
+			Map<String,Object> model ) {
+			String redirect = "";
+			
+			Sitting sitting = quizService.findSittingByGuid(guid);
+			model.put("sitting", sitting);
+			Question question = quizService.goToQuestion(sitting, qId);
+			//Verify the remaining time
+			if(examMonitor != null && examMonitor.getSeconds() == 0){
+				redirect = QUIZ_THANKS_VIEW;
+			}else{	
+				model.put("question", question);
+				model.put("questionViewHelper", new MultipleChoiceHelper(question));
+				if(isExamTimed){
+					model.put("isExamInTime", "true");
+					model.put("remainingTime", examMonitor.getSeconds());
+				}
+				redirect =  new QuizQuestionViewVisitor(question).getView();
+			}
+			
+			
+			return redirect;
+	}
+	
+	@RequestMapping(method=GET)
+	public String prevQuestion(	@RequestParam(value="s") String guid,
+							Map<String,Object> model ) {
+		String redirect = "";
+		Sitting sitting = quizService.findSittingByGuid(guid);
+		model.put("sitting", sitting);
+		
+		if(sitting.hasPreviousQuestion()) {
+			Question question = quizService.previousQuestion(sitting);
+			
+			//Verify the remaining time
+			if(examMonitor != null && examMonitor.getSeconds() == 0){
+				redirect = QUIZ_THANKS_VIEW;
+			}else{	
+			
+				model.put("question", question);
+				model.put("questionViewHelper", new MultipleChoiceHelper(question));
+				if(isExamTimed){
+					model.put("isExamInTime", "true");
+					model.put("remainingTime", examMonitor.getSeconds());
+				}
+				redirect =  new QuizQuestionViewVisitor(question).getView();
+			}
+		}
 		return redirect;
 	}
 	
@@ -181,6 +228,18 @@ public class QuizController {
 		public void visit(MultipleChoiceQuestion question) {
 			this.view = "quiz/multipleChoiceQuestion";
 		}
+	} 
+	
+	
+	
+	private void timeProcess(Sitting sitting){
+		//Counter time on the server side.
+		if(totalExamTime == 0 && isExamTimed){
+			calculateTotalExamTime(sitting.getExam());
+			if(isExamTimed){				
+				examMonitor = new ExamTimeMonitor(totalExamTime);					
+			}
+		}		
 	}
 	
 	private void calculateTotalExamTime(Exam exam){		
@@ -191,7 +250,12 @@ public class QuizController {
 				this.totalExamTime = this.totalExamTime + question.getTimeAllowed();
 			}
 		}
-		isExamTimed = this.totalExamTime > 0; 
+		
+		if(exam.getTotalTime() > this.totalExamTime){
+			this.totalExamTime = exam.getTotalTime();
+		}	
+		
+		isExamTimed = this.totalExamTime > 0;		
 	}
 	
 	@RequestMapping(method = RequestMethod.POST)
@@ -208,6 +272,8 @@ public class QuizController {
 			if( clientRemainingTime > serverRemainingTimeMin && clientRemainingTime <= serverRemainingTimeMax){
 				dataProgress.put("remainingTime", serverRemainingTime);
 			}else{
+				dataProgress.put("remainingTime", "");
+				logger.debug("The exam time has expired.");
 				throw new TimeoutException("The exam time has expired.");			
 			}
 		}

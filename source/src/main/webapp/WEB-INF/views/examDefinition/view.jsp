@@ -69,6 +69,15 @@
                     <form:select path="jobPosition" items="${jobPositions}" itemLabel="title" />
                 </div>
             </li>
+            <li>
+                <label>Total Exam Time:</label>
+                <div>
+                    <form:input path="totalExamTime" id="totalExamTime" />
+                    <form:errors cssClass="error" path="totalExamTime"/>
+                    <br/>
+					<span>(seconds)</span>
+                </div>
+            </li>
 		</ul>
         <a id="addCP" style="float: right; margin-top: 0.35em; margin-bottom: 0.35em;">
             <img src="<c:url value="/img/add.png"/>" alt="Add" style="width: 16px; height: 16px;"/>
