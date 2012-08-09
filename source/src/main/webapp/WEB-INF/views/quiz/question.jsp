@@ -68,11 +68,11 @@
 					 }
 				 });	 
 				 //Server ping and Check Server Remaining Time.
-				 $(document).everyTime('10s',function(i) {
+				 $(document).everyTime('5s',function(i) {
 					$.ajax({
 						type: "POST",
 						url: '<c:url value="progress"/>',
-						data: {remainingTime:totalTime},
+						data: {remainingTime:totalTime,id:$('#sittingId').val()},
 						success: function (data){
 							if(totalTime == 0){
 								$(document).stopTime('keepalive');
@@ -113,12 +113,12 @@
 	
 	function nextQuestion() {
 		if(!submittedResponse) { setTimeout("nextQuestion()", 10); }
-		else { window.location = "<c:url value='/quiz/question?s=${sitting.guid}'/>"; }
+		else { window.location = "<c:url value='/quiz/question?s=${sitting.guid}&id=${sitting.id}'/>"; }
 	}
 	
 	function previousQuestion() {
 		if(!submittedResponse) { setTimeout("previousQuestion()", 10); }
-		else { window.location = "<c:url value='/quiz/prevQuestion?s=${sitting.guid}'/>"; }
+		else { window.location = "<c:url value='/quiz/prevQuestion?s=${sitting.guid}&id=${sitting.id}'/>"; }
 	}
 	
 	$('#nextQuestion').click( function() {
@@ -137,6 +137,6 @@
 		openapplicant.quiz.helper.timer.destroy();		
 		submitResponse();
 		var qId = $(this).attr("id").split("_")[1];
-		$(location).attr('href',"<c:url value='/quiz/goToQuestion?s=${sitting.guid}&qId=" + qId + "'/>");
+		$(location).attr('href',"<c:url value='/quiz/goToQuestion?s=${sitting.guid}&qId=" + qId + "&id=${sitting.id}'/>");
 	});
 </script>

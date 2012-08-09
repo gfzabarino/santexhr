@@ -281,6 +281,8 @@
 	<bean id="facilitatorService" 
 		class="org.openapplicant.service.facilitator.FacilitatorService" parent="applicationService" />
 	
+	<bean id="sittingTimeManager" 
+		class="org.openapplicant.service.SittingTimeManager"/>
 	<!--
 	==========================================================================
 						@Configurable objects
