@@ -50,6 +50,15 @@
 					<form:errors cssClass="error" path="numberOfQuestionsWanted"/>
 				</div>
 			</li>
+            <li>
+                <label>Total Exam Time:</label>
+                <div>
+                    <form:input path="totalExamTime" id="totalExamTime" />
+                    <form:errors cssClass="error" path="totalExamTime"/>
+                    <br/>
+                    <span>(seconds)</span>
+                </div>
+            </li>
 			<security:authorize ifNotGranted="<%=ROLE_HR.name()%>">
 			<li class="actions">
 				<input type="submit" value="Save" />

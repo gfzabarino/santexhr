@@ -27,6 +27,8 @@ public class ExamDefinition extends DomainObject {
 	private String name = "";
 	private boolean active = false;
 	private Integer numberOfQuestionsWanted = 1;
+	
+
     private long totalExamTime;
     
 	@Transient
@@ -175,11 +177,12 @@ public class ExamDefinition extends DomainObject {
 	}
 
     @Column(nullable=true, columnDefinition="int default 0")
-    public long getTotalExamTime() {
+    @Min(1)
+    public Long getTotalExamTime() {
         return totalExamTime;
     }
 
-    public void setTotalExamTime(long totalExamTime) {
+    public void setTotalExamTime(Long totalExamTime) {
         this.totalExamTime = totalExamTime;
     }
 
