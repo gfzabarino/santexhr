@@ -8,6 +8,9 @@ import org.openapplicant.domain.Sitting;
 import org.openapplicant.domain.link.CandidateExamLink;
 import org.openapplicant.domain.link.ExamLink;
 import org.openapplicant.domain.question.*;
+import org.openapplicant.monitor.timed.QuestionTimeable;
+import org.openapplicant.monitor.timed.SittingTimeable;
+import org.openapplicant.service.QuestionTimeManager;
 import org.openapplicant.service.QuizService;
 import org.openapplicant.service.SittingTimeManager;
 import org.openapplicant.web.view.MultipleChoiceHelper;
@@ -27,7 +30,7 @@ public class QuizController {
 	
 	private QuizService quizService;
 	
-	private SittingTimeManager sittingTimeManager;
+
 	
 	private final static String QUIZ_THANKS_VIEW = "quiz/thanks";
 	
@@ -35,11 +38,8 @@ public class QuizController {
 		quizService = value;
 	}
 
-    public void setSittingTimeManager(SittingTimeManager sittingTimeManager) {
-        this.sittingTimeManager = sittingTimeManager;
-    }
 
-    @RequestMapping(method=GET)
+	@RequestMapping(method=GET)
     public String index(	@RequestParam(value="exam", required=false) String guid,
                              Map<String,Object> model) {
         if (doIndex(guid, model)) {
@@ -94,14 +94,11 @@ public class QuizController {
 		ExamLink examLink = quizService.getExamLinkByGuid(guid);
         Sitting sitting = quizService.createSitting(((CandidateExamLink) examLink).getCandidate(),
                 ((CandidateExamLink) examLink).getExams().get(0).getArtifactId());
-
+       
         if(sitting.isFinished()) {
             model.put("error", "This exam has already been completed.");
             return "quiz/sorry";
         }
-
-        sittingTimeManager.timerProcess(sitting.getGuid(), sitting.getExam());
-
         return "redirect:goToQuestion?s="+sitting.getGuid()+"&qg="+sitting.getNextQuestion().getGuid();
 	}
 	
@@ -114,15 +111,14 @@ public class QuizController {
         model.put("sitting", sitting);
 
         if (!sitting.isFinished()) {
+        	
             Question question = quizService.goToQuestion(sitting, questionGuid);
-
             model.put("question", question);
             model.put("questionViewHelper", new MultipleChoiceHelper(question));
-
-            if (sittingTimeManager.isExamMonitoring(guid)) {
-                model.put("isExamInTime", "true");
-                model.put("remainingTime", sittingTimeManager.getExamTimeBySittingGuid(guid).getSeconds());
-            }
+            
+            model.put("remainingTime", quizService.getExamRemainingTime(sitting));
+            model.put("remainingQuestionTime", quizService.getQuestionRemainingTime(question));
+            
             redirect = new QuizQuestionViewVisitor(question).getView();
         } else {
             model.put("completionText", sitting.getCandidate().getCompany().getCompletionText());
@@ -167,10 +163,7 @@ public class QuizController {
 	public String finish(@RequestParam("guid") String guid,
                          Map<String, Object> model) {
         logger.debug("********** Finish Exam Client Request");
-		if(sittingTimeManager.isExamMonitoring(guid)){
-            logger.debug("********** Removing sitting from timeManager");
-            sittingTimeManager.clearExamTimeMonitorBySitting(guid);
-		}
+        quizService.clearExamTimeMonitor(guid);
         Sitting sitting = quizService.findSittingByGuid(guid);
         model.put("completionText", sitting.getCandidate().getCompany().getCompletionText());
 		return QUIZ_THANKS_VIEW;

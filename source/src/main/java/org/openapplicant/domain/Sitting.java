@@ -20,12 +20,11 @@ import org.hibernate.validator.NotNull;
 import org.hibernate.validator.Valid;
 import org.openapplicant.domain.question.Question;
 import org.openapplicant.policy.NeverCall;
-import org.openapplicant.web.view.MultipleChoiceHelper;
 import org.springframework.util.Assert;
 
 
 @Entity
-public class Sitting extends DomainObject {
+public class Sitting extends DomainObject{
 	
 	private Candidate candidate;
 	
