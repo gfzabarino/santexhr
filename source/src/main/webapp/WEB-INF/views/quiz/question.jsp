@@ -25,7 +25,7 @@
 
         <!-- wide -->
         <div class="wide-top align-center">
-		<span>WWW${remainingQuestionTime}WWW</span>
+
             <!-- nav control -->
             <div id="nav-control">
 

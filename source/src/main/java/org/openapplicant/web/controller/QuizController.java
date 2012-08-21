@@ -8,11 +8,7 @@ import org.openapplicant.domain.Sitting;
 import org.openapplicant.domain.link.CandidateExamLink;
 import org.openapplicant.domain.link.ExamLink;
 import org.openapplicant.domain.question.*;
-import org.openapplicant.monitor.timed.QuestionTimeable;
-import org.openapplicant.monitor.timed.SittingTimeable;
-import org.openapplicant.service.QuestionTimeManager;
 import org.openapplicant.service.QuizService;
-import org.openapplicant.service.SittingTimeManager;
 import org.openapplicant.web.view.MultipleChoiceHelper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -163,7 +159,7 @@ public class QuizController {
 	public String finish(@RequestParam("guid") String guid,
                          Map<String, Object> model) {
         logger.debug("********** Finish Exam Client Request");
-        quizService.clearExamTimeMonitor(guid);
+        quizService.finishSitting(guid);
         Sitting sitting = quizService.findSittingByGuid(guid);
         model.put("completionText", sitting.getCandidate().getCompany().getCompletionText());
 		return QUIZ_THANKS_VIEW;

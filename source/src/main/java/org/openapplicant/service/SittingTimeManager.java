@@ -11,28 +11,30 @@ import org.springframework.stereotype.Component;
 public class SittingTimeManager extends AbstractTimeManager<SittingTimeable, ExamTimeMonitor>{
 	
 	private static final Log logger = LogFactory.getLog(SittingTimeManager.class);
+    private SittingService sittingService;
+
+    public void setSittingService(SittingService sittingService) {
+        this.sittingService = sittingService;
+    }
 	
-    private QuizService quizService;
-    
-	public void clearExamTimeMonitorBySitting(String sittingGuid) {
-		Sitting sitting = quizService.findSittingByGuid(sittingGuid);
-		SittingTimeable sittingTimeable = new SittingTimeable(sitting);
-		ExamTimeMonitor examTimeMonitor = get(sittingTimeable);
-		if (examTimeMonitor != null) {
-			logger.debug("********** stopCountDownTask");
-			examTimeMonitor.stopCountDownTask();
-		}
-		removeInstance(sittingTimeable);
-		quizService.doSittingFinished(sitting);
-	}    
-	
+	public void finishSitting(Sitting sitting) {
+		finishSitting(new SittingTimeable(sitting));
+	}
+
+    public void finishSitting(SittingTimeable sittingTimeable) {
+        ExamTimeMonitor examTimeMonitor = get(sittingTimeable);
+        if (examTimeMonitor != null) {
+            logger.debug("********** stopCountDownTask");
+            examTimeMonitor.stopCountDownTask();
+        }
+        removeInstance(sittingTimeable);
+        sittingService.doSittingFinished(sittingTimeable.getEntity());
+    }
+
 	public boolean isExamMonitoring(String sittingGuid){
 		return this.get(sittingGuid) != null;
 	}
 	
-    public void setQuizService(QuizService quizService) {
-        this.quizService = quizService;
-    }
 
 	@Override
 	public String createKey(SittingTimeable entity) {
@@ -46,8 +48,6 @@ public class SittingTimeManager extends AbstractTimeManager<SittingTimeable, Exa
 
 	@Override
 	public void notifyFinishEvent(SittingTimeable entity)  {
-		removeInstance(entity);
+		finishSitting(entity);
 	}
-
-	
 }

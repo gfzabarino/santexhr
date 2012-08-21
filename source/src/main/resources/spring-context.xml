@@ -274,16 +274,16 @@
 	
 	<bean id="facilitatorService" 
 		class="org.openapplicant.service.facilitator.FacilitatorService" parent="applicationService" />
+
+    <bean id="sittingService" class="org.openapplicant.service.SittingService" parent="applicationService"/>
 	
 	<bean id="sittingTimeManager" 
 		class="org.openapplicant.service.SittingTimeManager">
-        <property name="quizService" ref="quizService"/>
-    </bean>
+        <property name="sittingService" ref="sittingService"/>
+	</bean>
     
     <bean id="questionTimeManager" 
-		class="org.openapplicant.service.QuestionTimeManager">
-        <property name="quizService" ref="quizService"/>
-    </bean>
+		class="org.openapplicant.service.QuestionTimeManager"/>
 
 	<!--
 	==========================================================================

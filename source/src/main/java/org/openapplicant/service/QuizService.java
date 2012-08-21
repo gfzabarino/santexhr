@@ -5,7 +5,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openapplicant.domain.*;
 import org.openapplicant.domain.event.CandidateCreatedEvent;
-import org.openapplicant.domain.event.SittingCompletedEvent;
 import org.openapplicant.domain.event.SittingCreatedEvent;
 import org.openapplicant.domain.link.ExamLink;
 import org.openapplicant.domain.question.Question;
@@ -199,32 +198,13 @@ public class QuizService extends ApplicationService {
 		return rv;
 	}
 	
-	public void clearExamTimeMonitor(String guid) {
+	public void finishSitting(String guid) {
 		if(sittingTimeManager.isExamMonitoring(guid)){
             log.debug("********** Removing sitting from timeManager");
-            sittingTimeManager.clearExamTimeMonitorBySitting(guid);
+            sittingTimeManager.finishSitting(findSittingByGuid(guid));
 		}
 	}
 	
-	/**
-	 * Evaluate candidate status.
-	 * If the last question is submitted, the status of the candidates changes 
-	 * to READY_FOR_GRADING
-	 *
-	 * @param sitting the sitting
-	 */
-	public void doSittingFinished(Sitting sitting) {
-        if (sitting.getStatus().equals(Sitting.Status.STARTED)) {
-            log.debug("********** Changing Sitting and Candidate status");
-            sitting.setStatus(Sitting.Status.FINISHED);
-            sitting.getCandidate().setStatus(Candidate.Status.READY_FOR_GRADING);
-            getCandidateDao().save(sitting.getCandidate());
-            getCandidateWorkFlowEventDao().save(new SittingCompletedEvent(sitting));
-            getSittingDao().save(sitting);
-        }
-	}
-	
-
 	/**
 	 * Retrieves a sitting with the given id
 	 * 
