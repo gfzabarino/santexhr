@@ -264,7 +264,10 @@
 	</bean>
 	
 	<bean id="quizService" 
-		class="org.openapplicant.service.QuizService" parent="applicationService"/>
+		class="org.openapplicant.service.QuizService" parent="applicationService">
+		<property name="sittingTimeManager" ref="sittingTimeManager"/>
+		<property name="questionTimeManager" ref="questionTimeManager"/>
+	</bean>
 	
 	<bean id="reportService" 
 		class="org.openapplicant.service.ReportService" parent="applicationService" />
@@ -274,6 +277,11 @@
 	
 	<bean id="sittingTimeManager" 
 		class="org.openapplicant.service.SittingTimeManager">
+        <property name="quizService" ref="quizService"/>
+    </bean>
+    
+    <bean id="questionTimeManager" 
+		class="org.openapplicant.service.QuestionTimeManager">
         <property name="quizService" ref="quizService"/>
     </bean>
 

@@ -6,6 +6,7 @@ import org.hibernate.validator.Min;
 import org.hibernate.validator.NotEmpty;
 import org.openapplicant.domain.Category;
 import org.openapplicant.domain.DomainObject;
+import org.openapplicant.monitor.timed.Timeable;
 import org.openapplicant.policy.AssertNotFrozen;
 import org.openapplicant.policy.IFreezable;
 import org.springframework.util.Assert;
@@ -229,5 +230,4 @@ public abstract class Question extends DomainObject implements IFreezable {
 	 * @param visitor the visitor to accept
 	 */
 	public abstract void accept(IQuestionVisitor visitor);
-
 }

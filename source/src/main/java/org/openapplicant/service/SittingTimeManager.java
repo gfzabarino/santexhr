@@ -2,88 +2,52 @@ package org.openapplicant.service;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openapplicant.domain.Exam;
 import org.openapplicant.domain.Sitting;
-import org.openapplicant.domain.question.Question;
 import org.openapplicant.monitor.ExamTimeMonitor;
+import org.openapplicant.monitor.timed.SittingTimeable;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 @Component
-public class SittingTimeManager {
+public class SittingTimeManager extends AbstractTimeManager<SittingTimeable, ExamTimeMonitor>{
 	
 	private static final Log logger = LogFactory.getLog(SittingTimeManager.class);
 	
-	private final Map<String,ExamTimeMonitor> sittingExamTimeMonitorMap = new ConcurrentHashMap<String,ExamTimeMonitor>();
     private QuizService quizService;
-	
-	public ExamTimeMonitor getExamTimeBySittingGuid(String sittingGuid){
-		return sittingExamTimeMonitorMap.get(sittingGuid);
-	}
-	
-	public void createExamTimeMonitorForSitting(String sittingGuid, long totalExamTime){
-		sittingExamTimeMonitorMap.put(sittingGuid, new ExamTimeMonitor(totalExamTime, sittingGuid, this));
-	}
-	
+    
 	public void clearExamTimeMonitorBySitting(String sittingGuid) {
-        Sitting sitting = quizService.findSittingByGuid(sittingGuid);
-        ExamTimeMonitor examTimeMonitor = sittingExamTimeMonitorMap.get(sittingGuid);
-        if (examTimeMonitor != null) {
-            logger.debug("********** stopCountDownTask");
-            examTimeMonitor.stopCountDownTask();
-        }
-        sittingExamTimeMonitorMap.remove(sittingGuid);
-        quizService.doSittingFinished(sitting);
-	}
+		Sitting sitting = quizService.findSittingByGuid(sittingGuid);
+		SittingTimeable sittingTimeable = new SittingTimeable(sitting);
+		ExamTimeMonitor examTimeMonitor = get(sittingTimeable);
+		if (examTimeMonitor != null) {
+			logger.debug("********** stopCountDownTask");
+			examTimeMonitor.stopCountDownTask();
+		}
+		removeInstance(sittingTimeable);
+		quizService.doSittingFinished(sitting);
+	}    
 	
 	public boolean isExamMonitoring(String sittingGuid){
-		return sittingExamTimeMonitorMap.get(sittingGuid) != null;
-	}
-
-	public void timerProcess(String sittingGuid, Exam exam){
-		logger.debug("********** timerProcess()");
-		
-		long totalExamTime = 0;
-		//Counter time on the server side.
-		if(sittingExamTimeMonitorMap.get(sittingGuid) == null){			
-			totalExamTime = calculateTotalExamTime(exam);			
-			//Verify if the exam is timed or untimed.
-			if(totalExamTime > 0){				
-				//examMonitor = new ExamTimeMonitor(totalExamTime);
-				createExamTimeMonitorForSitting(sittingGuid,totalExamTime);
-			}
-		}
+		return this.get(sittingGuid) != null;
 	}
 	
-	private long calculateTotalExamTime(Exam exam){	
-		logger.debug("********** calculateTotalExamTime()");
-		List<Question> questionList= exam.getQuestions();
-		long totalExamTime = 0; 
-		
-		for (Question question : questionList) {
-			if(question.getTimeAllowed() != null){
-				totalExamTime = totalExamTime + question.getTimeAllowed();
-			}
-		}
-		
-		// if the globalExamTime is more than the sum of time question, 
-		// take it, in other case the sum is taken.
-		if(exam.getTotalTime() > totalExamTime){
-			totalExamTime = exam.getTotalTime();
-		}	
-		
-		return totalExamTime;
-	}
-
-    public void notifyFinishedExamEvent(String guid) {
-        logger.debug("********** Notify Manager about event timer finished");
-        clearExamTimeMonitorBySitting(guid);
-    }
-
     public void setQuizService(QuizService quizService) {
         this.quizService = quizService;
     }
+
+	@Override
+	public String createKey(SittingTimeable entity) {
+		return entity.getEntity().getGuid();
+	}
+
+	@Override
+	public ExamTimeMonitor createTimeMonitor(SittingTimeable entity, long time) {
+		return new ExamTimeMonitor(time, entity, entity.getEntity().getGuid(), this);
+	}
+
+	@Override
+	public void notifyFinishEvent(SittingTimeable entity)  {
+		removeInstance(entity);
+	}
+
+	
 }

@@ -145,7 +145,6 @@
 	<bean id="quizController" 
 		class="org.openapplicant.web.controller.QuizController">
 		<property name="quizService" ref="quizService"/>
-		<property name="sittingTimeManager" ref="sittingTimeManager"/>
 	</bean>
 		
 	<bean id="reportController"

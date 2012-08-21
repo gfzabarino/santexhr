@@ -9,6 +9,8 @@ import org.openapplicant.domain.event.SittingCompletedEvent;
 import org.openapplicant.domain.event.SittingCreatedEvent;
 import org.openapplicant.domain.link.ExamLink;
 import org.openapplicant.domain.question.Question;
+import org.openapplicant.monitor.timed.QuestionTimeable;
+import org.openapplicant.monitor.timed.SittingTimeable;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class QuizService extends ApplicationService {
 	
 	private static final Log log = LogFactory.getLog(QuizService.class);
+	
+	private SittingTimeManager sittingTimeManager;
+	
+	private QuestionTimeManager questionTimeManager;
+	
+
+    public void setSittingTimeManager(SittingTimeManager sittingTimeManager) {
+        this.sittingTimeManager = sittingTimeManager;
+    }
+    
+    
+
+    public void setQuestionTimeManager(QuestionTimeManager questionTimeManager) {
+		this.questionTimeManager = questionTimeManager;
+	}
 	
 	/**
 	 * Retrieves an exam link by its guid, sets the exam link to be used.
@@ -118,6 +135,8 @@ public class QuizService extends ApplicationService {
 		    getCandidateWorkFlowEventDao().save(new SittingCreatedEvent(sitting));
 		    getCandidateDao().save(candidate);
 		}
+		 SittingTimeable sittingTimeable = new SittingTimeable(sitting);
+		 sittingTimeManager.startTimer(sittingTimeable);
 		return sitting;
 	}
 	
@@ -129,8 +148,62 @@ public class QuizService extends ApplicationService {
 	 * @return the question
 	 */
 	public Question goToQuestion(Sitting sitting, String questionGuid) {
-		Question result = sitting.goToNextQuestion(questionGuid);
-    	return result;		
+		Question question = sitting.goToNextQuestion(questionGuid);
+		
+        QuestionTimeable questionTimeable = new QuestionTimeable(question);
+        
+        if (!isAnswered(sitting, questionGuid)) {
+        	questionTimeManager.startTimer(questionTimeable);
+        }
+        
+    	return question;		
+	}
+	
+	/**
+	 * @param sitting
+	 * @param questionGuid
+	 * @return
+	 */
+	private Boolean isAnswered(Sitting sitting, String questionGuid) {
+		for (QuestionAndResponse qar: sitting.getQuestionsAndResponses()) {
+			if (qar.getGuid().equals(questionGuid)) {
+				return qar.getResponse().getLoadTimestamp() != 0;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * @param sitting
+	 * @return
+	 */
+	public Long getExamRemainingTime(Sitting sitting) {
+		Long rv = null;
+		if (sitting != null) {
+			SittingTimeable sittingTimeable = new SittingTimeable(sitting);
+			rv = sittingTimeManager.getRemainingTime(sittingTimeable);
+		}
+		return rv;
+	}
+	
+	/**
+	 * @param question
+	 * @return
+	 */
+	public Long getQuestionRemainingTime(Question question) {
+		Long rv = null;
+		if (question != null) {
+			QuestionTimeable questionTimeable = new QuestionTimeable(question);
+			rv = questionTimeManager.getRemainingTime(questionTimeable);
+		}
+		return rv;
+	}
+	
+	public void clearExamTimeMonitor(String guid) {
+		if(sittingTimeManager.isExamMonitoring(guid)){
+            log.debug("********** Removing sitting from timeManager");
+            sittingTimeManager.clearExamTimeMonitorBySitting(guid);
+		}
 	}
 	
 	/**

@@ -25,7 +25,7 @@
 
         <!-- wide -->
         <div class="wide-top align-center">
-
+		<span>WWW${remainingQuestionTime}WWW</span>
             <!-- nav control -->
             <div id="nav-control">
 
@@ -52,6 +52,7 @@
                     <li id="total"><a href="#"><c:out value="${fn:length(sitting.questionsAndResponses)}"/></a></li>
                     <li id="arrow-right"><a href="#"><span>Right</span></a></li>
                     </c:if>
+                   
                 </ul>
                 <!-- /nav -->
 
