@@ -41,9 +41,9 @@
                     <li>
                     <ul id="nav-numbers">
                         <c:forEach items="${sitting.questionsAndResponses}" var="questionAndResponseIndex" varStatus="index">
-                            <li<c:if test="${questionAndResponseIndex.question eq question}"> class='current-nav'</c:if>>
+                            <li class='<c:if test="${questionAndResponseIndex.question eq question}">current-nav</c:if>'>
                                 <a href="#" id="goToQuestion_${questionAndResponseIndex.question.guid}"
-                                        <c:if test="${!(questionAndResponseIndex.response eq null) && (((not empty questionAndResponseIndex.response.content) || (questionAndResponseIndex.response.dontKnowTheAnswer == true)) || (questionAndResponseIndex.question.timeAllowed != null && questionAndResponseIndex.question.timeAllowed > 0 && questionAndResponseIndex.response.loadTimestamp != 0))}"> class="i-was-there"</c:if>><c:out value="${index.index + 1}"/></a></li>
+                                   class="<c:if test="${!(questionAndResponseIndex.response eq null) && (((not empty questionAndResponseIndex.response.content) || (questionAndResponseIndex.response.dontKnowTheAnswer == true)) || (questionAndResponseIndex.question.timeAllowed != null && questionAndResponseIndex.question.timeAllowed > 0 && questionAndResponseIndex.response.loadTimestamp != 0))}">i-was-there</c:if><c:if test="${!(questionAndResponseIndex.question.timeAllowed eq null) && questionAndResponseIndex.question.timeAllowed > 0}"> timed</c:if>"><c:out value="${index.index + 1}"/></a><c:if test="${!(questionAndResponseIndex.response eq null) && questionAndResponseIndex.response.flagged}"><span>*</span></c:if></li>
                         </c:forEach>
                     </ul>
                     </li>
@@ -77,6 +77,13 @@
             <!-- questions  -->
             <div id="questions">
                 <tiles:insertAttribute name="questionKind"/>
+                <c:forEach items="${sitting.questionsAndResponses}" var="questionAndResponse">
+                    <c:if test="${questionAndResponse.question eq question}">
+                <div id="flagQuestion">
+                    <input id="flagQuestionCheck" type="checkbox"<c:if test="${!(questionAndResponse.response eq null) && questionAndResponse.response.flagged}"> checked="checked"</c:if>>Flag for review<span style="color: red"> *</span></input>
+                </div>
+                    </c:if>
+                </c:forEach>
                 <div id="errorMessage"></div>
                 <c:if test="${sitting.nextQuestionIndex != fn:length(sitting.exam.questions)}">
                     <p class="next-button"><a href="#" id="nextQuestion" name="Continue">Continue</a></p>
@@ -133,9 +140,8 @@
         });
 
         <c:if test="${!(question.timeAllowed eq null) && question.timeAllowed > 0}">
-        var questionTime = ${question.timeAllowed * 1000};
+
         var numberOfLights = 5;
-        var timePerLight = questionTime / numberOfLights;
         var section = $('#semaphore');
         for (i = 0; i < numberOfLights; i++) {
             section.html(section.html() + '<div id="light' + i + '"><img src="<c:url value="/img/quiz/light-yellow.png"/>"/></div>');
@@ -145,8 +151,22 @@
         for (i = 0; i < numberOfLights; i++) {
             section.html(section.html() + '<div id="light_off' + i + '"><img src="<c:url value="/img/quiz/light-off.png"/>"/></div>');
         }
+
+        var questionTime = ${question.timeAllowed * 1000};
+        var remainingQuestionTime = ${remainingQuestionTime * 1000};
+
+        var totalTimePerLight = questionTime / numberOfLights;
+        var consumedTime = questionTime - remainingQuestionTime;
+        var numberOfLightsTotallyConsumed = Math.floor(consumedTime / totalTimePerLight);
+        var partialLightConsumedTime = consumedTime % totalTimePerLight;
+        var partialLightConsumedFraction = partialLightConsumedTime / totalTimePerLight;
+
+        for (i = 0; i < numberOfLightsTotallyConsumed; i++) {
+            $('#light_off' + i).css({ opacity: 0.0 });
+        }
+        $('#light_off' + i).css({ opacity: 1 - partialLightConsumedFraction });
         var off = function (i) {
-            $('#light_off' + i).fadeTo(timePerLight, 0, function () {
+            $('#light_off' + i).fadeTo(totalTimePerLight, 0, function () {
                 if (i < (numberOfLights - 1)) {
                     off(i + 1);
                 } else {
@@ -154,8 +174,18 @@
                     goToQuestion('${question.guid}');
                 }
             });
-        }
-        off(0);
+        };
+        var offPartial = function (i) {
+            $('#light_off' + i).fadeTo(totalTimePerLight - partialLightConsumedTime, 0, function () {
+                if (i < (numberOfLights - 1)) {
+                    off(i + 1);
+                } else {
+                    submitResponse();
+                    goToQuestion('${question.guid}');
+                }
+            });
+        };
+        offPartial(i);
         </c:if>
         </c:if>
         <c:if test="${fn:length(sitting.questionsAndResponses) > 8}">

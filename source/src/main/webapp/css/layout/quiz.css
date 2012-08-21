@@ -461,7 +461,7 @@ button.go-button span {
 }
 
 #nav-control li {
-	margin:0 3px;
+	margin:0 5px;
     display: block;
     float: left;
 }
@@ -513,6 +513,8 @@ button.go-button span {
 	border:2px solid #ebeaea;
 	border-radius:3px;
 	text-align:center;
+    float: left;
+    margin-right: -4px;
 	
 	-webkit-transition:0.3s ease-in-out;
 	-moz-transition:0.3s ease-in-out;
@@ -545,6 +547,28 @@ button.go-button span {
 	-moz-transition:0.3s ease-in-out;
 	-o-transition:0.3s ease-in-out;
 	transition:0.3s ease-in-out;
+}
+
+#nav-control #nav-numbers li a.timed {
+    background: url(../../img/quiz/clock-small.png) no-repeat scroll #ECEDEE !important;
+}
+
+#nav-control #nav-numbers li a:hover.timed,
+#nav-control #nav-numbers li.current-nav a.timed,
+#nav-control #nav-arrows li#total a:hover {
+    background: url(../../img/quiz/clock-small.png) no-repeat scroll #46d877 !important;
+}
+
+#nav-control #nav-numbers li a.i-was-there.timed {
+    background: url(../../img/quiz/clock-small.png) no-repeat scroll #3591e7 !important;
+}
+
+#nav-control #nav-numbers li span {
+    color: red;
+    float: right;
+    margin-left: -6px;
+    margin-top: 2px;
+    margin-right: -2px;
 }
 
 #nav-control li#of-total {

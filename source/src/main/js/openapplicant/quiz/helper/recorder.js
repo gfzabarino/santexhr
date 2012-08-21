@@ -10,6 +10,7 @@ var loadTimestamp;
 
 var textarea; //content = textarea.val()
 var dontKnowTheAnswerRadio; //dontKnowTheAnswer = dontKnowTheAnswerRadio.attr("checked")
+var flagCheckBoxId; // flagged = $(flagCheckBoxId).attr("checked")
 
 // stored as JSON strings
 // [{ t: text/type OR d: diff, m: milliseconds}]
@@ -37,7 +38,7 @@ var self = openapplicant.quiz.helper.recorder = {
 	/**
 	 * @param el the html textarea
 	 */
-	init: function(el, el2) {
+	init: function(el, el2, el3) {
 	
 		loadTimestamp = new Date().getTime();
 		hasFocus = true;
@@ -50,6 +51,8 @@ var self = openapplicant.quiz.helper.recorder = {
                 $(this).attr("checked", false);
             }
         });
+
+        flagCheckBoxId = el3;
 		
 		keypressEvents = [];
 		focusEvents = [];
@@ -186,7 +189,8 @@ var self = openapplicant.quiz.helper.recorder = {
 			linesPerHour:	linesPerHour,
 			browserType:	browserType,
 			browserVersion: browserVersion,
-            dontKnowTheAnswer:dontKnowTheAnswerRadio.attr("checked")
+            dontKnowTheAnswer:dontKnowTheAnswerRadio.attr("checked"),
+            flagged: $(flagCheckBoxId).attr("checked")
 		};
       
     },

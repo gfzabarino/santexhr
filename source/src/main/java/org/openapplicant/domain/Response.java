@@ -18,6 +18,7 @@ public class Response extends DomainObject {
 	private String pasteEvents = "";
 
     private boolean dontKnowTheAnswer = false;
+    private boolean flagged = false;
 	
 	private final ResponseMeasurements measurements = new ResponseMeasurements();
 	
@@ -295,5 +296,14 @@ public class Response extends DomainObject {
     }
     public void setDontKnowTheAnswer(boolean dontKnowTheAnswer) {
         this.dontKnowTheAnswer = dontKnowTheAnswer;
+    }
+
+    @Column(nullable = false)
+    public boolean isFlagged() {
+        return flagged;
+    }
+
+    public void setFlagged(boolean flagged) {
+        this.flagged = flagged;
     }
 }

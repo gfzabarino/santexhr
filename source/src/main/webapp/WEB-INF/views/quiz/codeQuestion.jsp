@@ -28,7 +28,7 @@
 </ul>
 <script type="text/javascript">
 	oltk.include('openapplicant/quiz/helper/recorder.js');
-	openapplicant.quiz.helper.recorder.init('#response', '#dontKnowTheAnswer');
+	openapplicant.quiz.helper.recorder.init('#response', '#dontKnowTheAnswer', '#flagQuestionCheck');
 
 	oltk.include('openapplicant/quiz/helper/tab.js');
 	openapplicant.quiz.helper.tab.init('#response');

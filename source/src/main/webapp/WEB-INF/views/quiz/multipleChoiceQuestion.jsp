@@ -61,5 +61,5 @@
         }
     });
 	
-	openapplicant.quiz.helper.recorder.init('#response', '#dontKnowTheAnswer');
+	openapplicant.quiz.helper.recorder.init('#response', '#dontKnowTheAnswer', '#flagQuestionCheck');
 </script>
