@@ -552,7 +552,7 @@
         <spring.webflow.version>2.0.9.RELEASE</spring.webflow.version>
 		<spring.security.version>2.0.4</spring.security.version>
 		<tiles.version>2.1.0</tiles.version>
-		<aspectj.version>1.6.0</aspectj.version>
+		<aspectj.version>1.6.12</aspectj.version>
 		<easymock.version>2.4</easymock.version>
 		
 		<!-- web settings -->
