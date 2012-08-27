@@ -178,6 +178,7 @@ public class ExamDefinition extends DomainObject {
 
     @Column(nullable=true, columnDefinition="int default 0")
     @Min(1)
+    @Max(value = 5999)
     public Long getTotalExamTime() {
         return totalExamTime;
     }

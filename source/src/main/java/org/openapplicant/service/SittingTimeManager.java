@@ -16,29 +16,41 @@ public class SittingTimeManager extends AbstractTimeManager<SittingTimeable, Exa
     public void setSittingService(SittingService sittingService) {
         this.sittingService = sittingService;
     }
-	
+
+    /**
+     * Marks a sitting as finished and stops the monitor if specified. This method can override the default
+     * behaviour of stopping the monitor.
+     * @param sitting
+     */
+    public void finishSitting(Sitting sitting, boolean stopMonitor) {
+        finishSitting(new SittingTimeable(sitting), stopMonitor);
+    }
+
+    /**
+     * Marks a sitting as finished and stops the monitor. This method should be called when the user
+     * finishes the sitting voluntary.
+     * @param sitting
+     */
 	public void finishSitting(Sitting sitting) {
-		finishSitting(new SittingTimeable(sitting));
+		finishSitting(sitting, true);
 	}
 
-    public void finishSitting(SittingTimeable sittingTimeable) {
+    /**
+     * Marks a sitting as finished and stops the monitor if specified. This method can override the default
+     * behaviour of stopping the monitor.
+     * @param sittingTimeable
+     */
+    private void finishSitting(SittingTimeable sittingTimeable, boolean stopMonitor) {
         ExamTimeMonitor examTimeMonitor = get(sittingTimeable);
-        if (examTimeMonitor != null) {
-            logger.debug("********** stopCountDownTask");
-            examTimeMonitor.stopCountDownTask();
+        if (examTimeMonitor != null && stopMonitor) {
+            logger.debug("********** stopMonitor");
+            examTimeMonitor.stopMonitor();
         }
-        removeInstance(sittingTimeable);
         sittingService.doSittingFinished(sittingTimeable.getEntity());
     }
 
 	public boolean isExamMonitoring(String sittingGuid){
 		return this.get(sittingGuid) != null;
-	}
-	
-
-	@Override
-	public String createKey(SittingTimeable entity) {
-		return entity.getEntity().getGuid();
 	}
 
 	@Override
@@ -46,8 +58,14 @@ public class SittingTimeManager extends AbstractTimeManager<SittingTimeable, Exa
 		return new ExamTimeMonitor(time, entity, entity.getEntity().getGuid(), this);
 	}
 
+    /**
+     * This method shouldn't stop the monitor, it should only be used notify this manager to change
+     * the SittingTimeable's Sitting's state. The monitor should stop it self.
+     * @param entity
+     */
 	@Override
 	public void notifyFinishEvent(SittingTimeable entity)  {
-		finishSitting(entity);
+        super.notifyFinishEvent(entity);
+		finishSitting(entity, false);
 	}
 }

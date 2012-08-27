@@ -283,7 +283,9 @@
 	</bean>
     
     <bean id="questionTimeManager" 
-		class="org.openapplicant.service.QuestionTimeManager"/>
+		class="org.openapplicant.service.QuestionTimeManager">
+        <property name="sittingService" ref="sittingService"/>
+	</bean>
 
 	<!--
 	==========================================================================

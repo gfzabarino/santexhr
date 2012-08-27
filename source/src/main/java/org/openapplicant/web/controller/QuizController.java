@@ -14,7 +14,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpSession;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -26,7 +29,7 @@ public class QuizController {
 	
 	private QuizService quizService;
 	
-
+    private final static String JUST_RENDERED_ATTR = "JUST_RENDERED_ATTR";
 	
 	private final static String QUIZ_THANKS_VIEW = "quiz/thanks";
 	
@@ -99,8 +102,10 @@ public class QuizController {
 	}
 	
 	@RequestMapping(method=GET)
-	public String goToQuestion(	@RequestParam(value="s") String guid,@RequestParam(value="qg") String questionGuid,
-			Map<String,Object> model ) {
+	public String goToQuestion(@RequestParam(value="s") String guid,
+                               @RequestParam(value="qg") String questionGuid,
+			                   Map<String,Object> model,
+                               HttpSession session) {
         String redirect;
 
         Sitting sitting = quizService.findSittingByGuid(guid);
@@ -113,14 +118,14 @@ public class QuizController {
             model.put("questionViewHelper", new MultipleChoiceHelper(question));
             
             model.put("remainingTime", quizService.getExamRemainingTime(sitting));
-            model.put("remainingQuestionTime", quizService.getQuestionRemainingTime(question));
-            
+            model.put("remainingQuestionTime", quizService.getQuestionRemainingTime(sitting, question));
+
             redirect = new QuizQuestionViewVisitor(question).getView();
         } else {
             model.put("completionText", sitting.getCandidate().getCompany().getCompletionText());
             redirect = QUIZ_THANKS_VIEW;
         }
-
+        session.setAttribute(JUST_RENDERED_ATTR, true);
         return redirect;
 	}
 	
@@ -164,4 +169,31 @@ public class QuizController {
         model.put("completionText", sitting.getCandidate().getCompany().getCompletionText());
 		return QUIZ_THANKS_VIEW;
 	}
+
+    @RequestMapping
+    public ModelAndView remainingTime(@RequestParam(value="s") String guid,
+                                      @RequestParam(value="qg") String questionGuid,
+                                      @RequestParam(value = "tqf", required = false) Boolean isTimedQuestionFinished,
+                                      HttpSession session) {
+
+        Map<String, Object> model = new HashMap<String, Object>();
+        Boolean didJustRenderPage = (Boolean) session.getAttribute(JUST_RENDERED_ATTR);
+        Sitting sitting = quizService.findSittingByGuid(guid);
+        // The page was accessed by doing back/forward, any timed question should stop its monitor (for this sitting)
+        if (didJustRenderPage == null || (didJustRenderPage != null && didJustRenderPage.equals(Boolean.FALSE))) {
+            Question question = quizService.findQuestionByGuid(questionGuid);
+            boolean didFinishAtLeastOneQuestion = quizService.finishAnyTimedQuestionForSitting(sitting);
+            if ((isTimedQuestionFinished != null && !isTimedQuestionFinished && question.getTimeAllowed() != null && question.getTimeAllowed() > 0) ||
+                    didFinishAtLeastOneQuestion) {
+                model.put("reload", true);
+            } else {
+                quizService.goToQuestion(sitting, questionGuid, false);
+                model.put("remainingTime", quizService.getExamRemainingTime(sitting));
+            }
+        } else {
+            model.put("remainingTime", quizService.getExamRemainingTime(sitting));
+            session.setAttribute(JUST_RENDERED_ATTR, false);
+        }
+        return new ModelAndView("jsonView", model);
+    }
 }

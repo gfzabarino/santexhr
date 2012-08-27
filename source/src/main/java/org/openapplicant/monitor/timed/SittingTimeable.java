@@ -1,10 +1,10 @@
 package org.openapplicant.monitor.timed;
 
-import java.util.List;
-
 import org.openapplicant.domain.Exam;
 import org.openapplicant.domain.Sitting;
 import org.openapplicant.domain.question.Question;
+
+import java.util.List;
 
 public class SittingTimeable implements Timeable<Sitting> {
 
@@ -13,8 +13,12 @@ public class SittingTimeable implements Timeable<Sitting> {
 	public Sitting getEntity() {
 		return sitting;
 	}
-	
-	public SittingTimeable(Sitting sitting) {
+
+    public String getUniqueIdentifier() {
+        return sitting.getGuid();
+    }
+
+    public SittingTimeable(Sitting sitting) {
 		this.sitting = sitting;
 	}
 

@@ -107,35 +107,71 @@
 	oltk.include('jquery/time/jquery.timers-1.2.js');
 	oltk.include('jquery/jquery.js');
     $(document).ready(function () {
-        var totalTime = ${remainingTime eq null ? 0 : remainingTime};
+        function updateClock(millis) {
+            if (millis < 0) {
+                millis = 0;
+            }
+            var minutesRight, minutesLeft, secondsRight, secondsLeft, totalSeconds;
+            totalSeconds = Math.floor(millis / 1000);
+            secondsRight = totalSeconds % 10;
+            secondsLeft = parseInt(Math.floor((totalSeconds % 60) / 10));
+            minutesRight = parseInt(Math.floor(totalSeconds / 60)) % 10;
+            minutesLeft = parseInt(Math.floor(totalSeconds / 600));
+            $('#minute-left').html(minutesLeft);
+            $('#minute-right').html(minutesRight);
+            $('#second-left').html(secondsLeft);
+            $('#second-right').html(secondsRight);
+        }
+
+        function initCounter(millis) {
+            updateClock(millis);
+            totalTime = millis;
+            $(document).everyTime('1s', function (i) {
+                totalTime = totalTime - 1000;
+                updateClock(totalTime);
+                if (totalTime <= 0) {
+                    $(document).stopTime('displayRemainingTime');
+                    submitResponse();
+                    finishExam();
+                }
+            });
+        }
+
+        var totalTime = 0;
         //Display Total Exam time - CountDown.
-        $(document).everyTime('1s', function (i) {
-            if (totalTime > 0) {
-                totalTime = totalTime - 1;
-                var minutesRight, minutesLeft, secondsRight, secondsLeft;
-                secondsRight = totalTime % 10;
-                secondsLeft = parseInt(Math.floor((totalTime % 60) / 10));
-                minutesRight = parseInt(Math.floor(totalTime / 60));
-                minutesLeft = parseInt(Math.floor(totalTime / 600));
-                $('#minute-left').html(minutesLeft);
-                $('#minute-right').html(minutesRight);
-                $('#second-left').html(secondsLeft);
-                $('#second-right').html(secondsRight);
-            }
-            else {
-                $('#minute-left').html(0);
-                $('#minute-right').html(0);
-                $('#second-left').html(0);
-                $('#second-right').html(0);
-                $(document).stopTime('displayRemainingTime');
-                openapplicant.quiz.helper.timer.destroy();
-                submitResponse();
-                finishExam();
-            }
+
+        $(window).bind('pageshow', function() {
+            $.ajax({
+                url: '<c:url value="remainingTime"/>',
+                contentType: 'application/json',
+                data: {
+                    s: '${sitting.guid}',
+                    qg: '${question.guid}',
+                    tqf: '${!(question.timeAllowed eq null) && question.timeAllowed > 0 && (remainingQuestionTime eq null || remainingQuestionTime == 0)}'
+                },
+                success: function (data) {
+                    var response = eval('(' + data + ')');
+                    if (response.reload && response.reload == true) {
+                        window.location.reload();
+                        return;
+                    }
+                    totalTime = response.remainingTime;
+                    if (totalTime > 0) {
+                        var partialTime = totalTime % 1000;
+                        if (partialTime > 0) {
+                            updateClock(totalTime - partialTime + 1000);
+                            setTimeout(function () {
+                                initCounter(totalTime - partialTime);
+                            }, partialTime);
+                        } else {
+                            initCounter(totalTime);
+                        }
+                    }
+                }
+            });
         });
 
         $('#finish').click(function () {
-            openapplicant.quiz.helper.timer.destroy();
             submitResponse();
             finishExam();
         });
@@ -154,7 +190,7 @@
         }
 
         var questionTime = ${question.timeAllowed * 1000};
-        var remainingQuestionTime = ${remainingQuestionTime * 1000};
+        var remainingQuestionTime = ${remainingQuestionTime};
 
         var totalTimePerLight = questionTime / numberOfLights;
         var consumedTime = questionTime - remainingQuestionTime;
@@ -228,12 +264,6 @@
         </c:if>
     });
 	//End - check progress functionality
-	
-	oltk.include('openapplicant/quiz/helper/timer.js');
-	openapplicant.quiz.helper.timer.init('#time_allowed', ${null==question.timeAllowed ? 0 : question.timeAllowed},
-		submitResponse,
-		nextQuestion
-	);
 
 	var submittedResponse = false;
 	
@@ -269,7 +299,6 @@
 	
 	$('#nextQuestion').each(function() {
         $(this).click( function() {
-            openapplicant.quiz.helper.timer.destroy();
             submitResponse();
             nextQuestion();
         });
@@ -292,7 +321,6 @@
     });
 	</c:if>
 	$('a[id^=goToQuestion]').click( function() {
-		openapplicant.quiz.helper.timer.destroy();		
 		submitResponse();
 		var qg = $(this).attr("id").split("_")[1];
 		goToQuestion(qg)

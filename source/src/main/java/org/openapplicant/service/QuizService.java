@@ -144,12 +144,16 @@ public class QuizService extends ApplicationService {
 	 *
 	 * @param sitting the sitting
 	 * @param questionGuid the question guid
+     * @param finishSittingTimedQuestions flag to finish any active timed questions
 	 * @return the question
 	 */
-	public Question goToQuestion(Sitting sitting, String questionGuid) {
+	public Question goToQuestion(Sitting sitting, String questionGuid, boolean finishSittingTimedQuestions) {
+        if (finishSittingTimedQuestions && sitting.getCurrentQuestion().getTimeAllowed() > 0) {
+            finishAnyTimedQuestionForSitting(sitting);
+        }
 		Question question = sitting.goToNextQuestion(questionGuid);
 		
-        QuestionTimeable questionTimeable = new QuestionTimeable(question);
+        QuestionTimeable questionTimeable = new QuestionTimeable(sitting, question);
         
         if (!isAnswered(sitting, questionGuid)) {
         	questionTimeManager.startTimer(questionTimeable);
@@ -157,6 +161,21 @@ public class QuizService extends ApplicationService {
         
     	return question;		
 	}
+
+    /**
+     * Go to question. Finishes active timed questions.
+     *
+     * @param sitting the sitting
+     * @param questionGuid the question guid
+     * @return the question
+     */
+    public Question goToQuestion(Sitting sitting, String questionGuid) {
+        return goToQuestion(sitting, questionGuid, true);
+    }
+
+    public Question findQuestionByGuid(String guid) {
+        return getQuestionDao().findByGuid(guid);
+    }
 	
 	/**
 	 * @param sitting
@@ -165,7 +184,7 @@ public class QuizService extends ApplicationService {
 	 */
 	private Boolean isAnswered(Sitting sitting, String questionGuid) {
 		for (QuestionAndResponse qar: sitting.getQuestionsAndResponses()) {
-			if (qar.getGuid().equals(questionGuid)) {
+			if (qar.getQuestion().getGuid().equals(questionGuid) && qar.getResponse() != null) {
 				return qar.getResponse().getLoadTimestamp() != 0;
 			}
 		}
@@ -189,12 +208,15 @@ public class QuizService extends ApplicationService {
 	 * @param question
 	 * @return
 	 */
-	public Long getQuestionRemainingTime(Question question) {
+	public Long getQuestionRemainingTime(Sitting sitting, Question question) {
 		Long rv = null;
 		if (question != null) {
-			QuestionTimeable questionTimeable = new QuestionTimeable(question);
+			QuestionTimeable questionTimeable = new QuestionTimeable(sitting, question);
 			rv = questionTimeManager.getRemainingTime(questionTimeable);
 		}
+        if (rv != null && rv > 0) {
+            log.debug("question remaining time: " + rv + ". Sitting " + sitting.getGuid() + " question " + question.getGuid());
+        }
 		return rv;
 	}
 	
@@ -247,5 +269,15 @@ public class QuizService extends ApplicationService {
             return getResponseDao().save(response);
         }
         return null;
+    }
+
+    /**
+     * Returns true if at least one question was finished
+     * @param sitting
+     * @return
+     */
+    public boolean finishAnyTimedQuestionForSitting(Sitting sitting) {
+        log.debug("finishing any question left for sitting " + sitting.getGuid());
+        return questionTimeManager.finishAnyTimedQuestionForSitting(sitting);
     }
 }

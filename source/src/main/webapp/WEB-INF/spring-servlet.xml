@@ -206,5 +206,14 @@
    		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
 		<property name="maxUploadSize" value="10485760"/> <!-- 10 megabytes -->
 	</bean>
+
+    <bean name="jsonView" class="org.springframework.web.servlet.view.json.JsonView">
+        <property name="jsonWriter" ref="jsonWriter"/>
+    </bean>
+
+    <bean name="jsonWriter"
+          class="org.springframework.web.servlet.view.json.writer.jsonlib.JsonlibJsonStringWriter">
+        <property name="convertAllMapValues"><value>true</value></property>
+    </bean>
     
 </beans>

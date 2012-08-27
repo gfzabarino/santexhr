@@ -3,8 +3,10 @@ package org.openapplicant.service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openapplicant.domain.Candidate;
+import org.openapplicant.domain.Response;
 import org.openapplicant.domain.Sitting;
 import org.openapplicant.domain.event.SittingCompletedEvent;
+import org.openapplicant.domain.question.Question;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,5 +35,13 @@ public class SittingService extends ApplicationService {
             getCandidateWorkFlowEventDao().save(new SittingCompletedEvent(sitting));
             getSittingDao().save(sitting);
         }
+    }
+
+    public void submitEmptyResponseToQuestion(Sitting sitting, Question question) {
+        log.debug("submitting empty response (server generated) sitting " + sitting.getGuid() + " question " + question.getGuid());
+        Response emptyResponse = new Response();
+        emptyResponse.setLoadTimestamp(System.currentTimeMillis());
+        sitting.assignResponse(question.getGuid(), emptyResponse);
+        getSittingDao().save(sitting);
     }
 }
