@@ -41,20 +41,22 @@ public class PDFReport extends AbstractPdfView {
 
 		public Image getImage(String filename) {
 			String fullname = "";
-			Image returnValue;
+			Image imgLoaded;
 			try {
 				fullname = "/img/history_icons/"+filename+".png";
 				String realPath = getServletContext().getRealPath(fullname);
-				returnValue = null;
+				imgLoaded = null;
 				File file = new File(realPath);				
 				InputStream inputStream = new FileInputStream(file);
-				returnValue = PngImage.getImage(inputStream);
+				imgLoaded = PngImage.getImage(inputStream);
+				imgLoaded.scaleAbsoluteHeight(20f);
+				imgLoaded.scaleAbsoluteWidth(20f);
 			} catch (Exception e) {
 				logger.error("Caught exception opening png image " + filename
 						+ "(" + fullname + ")", e);
 				return null;
 			}
-			return returnValue;
+			return imgLoaded;
 		}
 		
 	
@@ -68,7 +70,7 @@ public class PDFReport extends AbstractPdfView {
 		private void formatter(String image, String text, CandidateWorkFlowEvent event) {
 			Paragraph paragraph1 = new Paragraph();
 			paragraph1.setSpacingBefore(10);
-			Image imageObject = getImage(image);
+			Image imageObject = getImage(image);			
 			if (imageObject != null)
 				paragraph1.add(new Chunk(imageObject, 0, -8)  );
 			paragraph1.add(new Chunk("   "+formatDate(event.getEntityInfo().getCreatedDate()) + " "));
@@ -203,7 +205,7 @@ public class PDFReport extends AbstractPdfView {
 				Image logo = PngImage.getImage(logoStream);
 //				logo.setAlignment(Image.ALIGN_CENTER);
 //				logo.scalePercent(20);
-				cb.addImage(logo,51,0,0,19.2f, document.right()-70 , document.top() - 20);
+				cb.addImage(logo,51,0,0,19.2f, document.right()-70 , document.top());
 
 				cb.beginText();
 				cb.setTextMatrix(280, document.bottom());
