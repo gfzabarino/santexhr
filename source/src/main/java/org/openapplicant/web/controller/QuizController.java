@@ -181,15 +181,7 @@ public class QuizController {
         Sitting sitting = quizService.findSittingByGuid(guid);
         // The page was accessed by doing back/forward, any timed question should stop its monitor (for this sitting)
         if (didJustRenderPage == null || (didJustRenderPage != null && didJustRenderPage.equals(Boolean.FALSE))) {
-            Question question = quizService.findQuestionByGuid(questionGuid);
-            boolean didFinishAtLeastOneQuestion = quizService.finishAnyTimedQuestionForSitting(sitting);
-            if ((isTimedQuestionFinished != null && !isTimedQuestionFinished && question.getTimeAllowed() != null && question.getTimeAllowed() > 0) ||
-                    didFinishAtLeastOneQuestion) {
-                model.put("reload", true);
-            } else {
-                quizService.goToQuestion(sitting, questionGuid, false);
-                model.put("remainingTime", quizService.getExamRemainingTime(sitting));
-            }
+            model.put("reload", true);
         } else {
             model.put("remainingTime", quizService.getExamRemainingTime(sitting));
             session.setAttribute(JUST_RENDERED_ATTR, false);

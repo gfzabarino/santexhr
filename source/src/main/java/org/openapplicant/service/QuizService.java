@@ -148,7 +148,9 @@ public class QuizService extends ApplicationService {
 	 * @return the question
 	 */
 	public Question goToQuestion(Sitting sitting, String questionGuid, boolean finishSittingTimedQuestions) {
-        if (finishSittingTimedQuestions && sitting.getCurrentQuestion().getTimeAllowed() > 0) {
+        Question currentQuestion = sitting.getCurrentQuestion();
+        if (finishSittingTimedQuestions && currentQuestion.getTimeAllowed() != null &&
+                currentQuestion.getTimeAllowed() > 0) {
             finishAnyTimedQuestionForSitting(sitting);
         }
 		Question question = sitting.goToNextQuestion(questionGuid);

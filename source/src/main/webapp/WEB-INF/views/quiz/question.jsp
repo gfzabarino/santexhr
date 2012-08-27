@@ -171,6 +171,12 @@
             });
         });
 
+        $(window).bind('unload', function() {
+            if (!submittedResponse) {
+                submitResponseAs(false);
+            }
+        });
+
         $('#finish').click(function () {
             submitResponse();
             finishExam();
@@ -282,10 +288,17 @@
         }
     }
 
-	function submitResponse() {
+	function submitResponseAs(asynchronous) {
 		var response = openapplicant.quiz.helper.recorder.getResponse();
+        if (asynchronous) {
+            dwr.engine.setAsync(asynchronous);
+        }
 		QuizService.submitResponse('${sitting.guid}', '${question.guid}', response, canContinue);
 	}
+
+    function submitResponse() {
+        submitResponseAs(true);
+    }
 	
 	function nextQuestion() {
 		if(!submittedResponse) { setTimeout("nextQuestion()", 10); }
